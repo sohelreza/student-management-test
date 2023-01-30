@@ -48,10 +48,8 @@ class StudentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false,'error' => 'make sure to fill up all the fields'], 401);
+            return response()->json(['success' => false,'messages' => $validator->errors()->messages()], 400);
         }
-
-        dd($validator);
     }
 
     /**
