@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Student;
 use App\Http\Requests\UpdateStudentRequest;
-use Validator;
+use App\Models\Student;
+use App\Models\CustomField;
+
 use Illuminate\Http\Request;
+use Validator;
 
 class StudentController extends Controller
 {
@@ -39,17 +41,66 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->new_fields[0]["title"]);
+
         $validator = Validator::make($request->all(), [
             'class' => 'required | max:11',
             'name' => 'required | max:100',
             'email' => 'required | max:100 | email:rfc,dns',
             'contact_number' => 'required | numeric | digits:11',
             'status' => 'required | in:unconfirmed,admitted,terminated',
+            // "field_ids"    => "array|min:1",
+            // "field_ids.*"  => "string|distinct|min:1",
+            'existing_fields' => "array|min:0",
+            'new_fields' => "array|min:0",
+            'new_fields.*.title' => "required|string|distinct",
+            'new_fields.*.type' => "required|string",
+            'new_fields.*.value' => "required|string",
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false,'messages' => $validator->errors()->messages()], 400);
         }
+
+        $new_field_ids = "";
+        $new_field_values = "";
+
+        foreach ($request->new_fields as $new_field) {
+            $data = CustomField::create([
+              'title' => $new_field['title'],
+              'type' => $new_field['type'],
+            ]);
+
+            $new_field_ids = $new_field_ids . ',' . $data->id;
+            $new_field_values = $new_field_values . ',' . $new_field['value'];
+        }
+
+        $new_field_ids = trim($new_field_ids, ",");
+        $new_field_values = trim($new_field_values, ",");
+
+        $student = new Student();
+        $student->class = $request->class;
+        $student->name = $request->name;
+        $student->email = $request->email;
+        $student->contact_number = $request->contact_number;
+        $student->status = $request->status;
+        $student->field_ids = $new_field_ids;
+        $student->field_values = $new_field_values;
+        $student->save();
+
+
+        // $batch=new Batch();
+        // $batch->class_id=$request->class_id;
+        // $batch->branch_id=$request->branch_id;
+        // $batch->name=$request->name;
+        // $batch->time=$request->time;
+        // $batch->max_student_number=$request->max_student_number;
+        // $batch->student_number=0;
+        // $batch->phase=$request->phase;
+        // $batch->status=$request->status;
+        // $batch->student_type=$request->student_type;
+        // $batch->save();
+        return response('Done');
     }
 
     /**

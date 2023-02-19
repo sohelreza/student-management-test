@@ -21,6 +21,7 @@ class CreateStudentsTable extends Migration
             $table->string('contact_number')->unique();
             $table->enum('status', ['unconfirmed', 'admitted','terminated']);
             $table->string('field_ids');
+            $table->string('field_values');
             $table->timestamps();
         });
     }
