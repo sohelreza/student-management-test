@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateStudentRequest;
-use App\Models\Student;
 use App\Models\CustomField;
+use App\Models\Student;
+use App\Rules\CustomFields;
 
 use Illuminate\Http\Request;
 use Validator;
@@ -52,10 +53,10 @@ class StudentController extends Controller
             // "field_ids"    => "array|min:1",
             // "field_ids.*"  => "string|distinct|min:1",
             'existing_fields' => "array|min:0",
-            'new_fields' => "array|min:0",
-            'new_fields.*.title' => "required|string|distinct",
-            'new_fields.*.type' => "required|string",
-            'new_fields.*.value' => "required|string",
+            'new_fields' => ["array",new CustomFields()],
+            'new_fields.*.title' => "required | string | distinct",
+            'new_fields.*.type' => "required | in:date,number,string,boolean",
+            'new_fields.*.value' => "required | string",
         ]);
 
         if ($validator->fails()) {
